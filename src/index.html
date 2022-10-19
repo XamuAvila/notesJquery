@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="../node_modules/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    <script src="../node_modules/moment/min/moment.min.js"></script>
+    <script src="../node_modules/showdown/dist/showdown.min.js"></script>
+</head>
+
+<header>
+
+</header>
+
+<body>
+    <div class="container">
+        <h1 class="header">
+            Notes
+        </h1>
+        <div id="addNewCard" class="border-blank align-spa-center blank-card">
+            <i onclick="callEditAddNoteModal()" class="bi bi-plus-circle add-new-card">&nbspAdd new Card</i>
+        </div>
+        <div class="formNewCard align-spa-center blank-card" style="display: none;">
+            <form id="formAddCard">
+                <h1>Add/Edit Note</h1>
+                <div class="form-group">
+                    <label for="noteTitle">Note Title</label>
+                    <input maxlength="20" type="text" class="form-control" id="noteTitle" aria-describedby="noteHelp"
+                        placeholder="Enter Note Title">
+                </div>
+                <div class="form-group">
+                    <label for="noteSubtitle">Subtitle</label>
+                    <input maxlength="20" type="text" class="form-control" id="noteSubtitle"
+                        placeholder="Enter Note Subtitle">
+                </div>
+                <br>
+                <div class="form-group">
+                    <div id="editor">
+                        <textarea id="editorMd"></textarea>
+                    </div>
+                </div>
+                <br>
+
+                <button style="float: right;" id="btnAddTask" onclick="createFirstCard(event)"
+                    class="btn btn-warning "><i class="bi bi-plus-circle font">&nbspAdd
+                        Task</i></button>
+                <button style="float: right; margin-right: 0.3em;" type="submit" class="btn btn-secondary ">
+                    Cancel</button>
+            </form>
+        </div>
+        <div class="cardGrid row" style="display: none;">
+
+        </div>
+    </div>
+    <div class="modal fade" id="modalNote" tabindex="-1" role="dialog" aria-labelledby="modalNoteLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" style="background-color: #101828;color: white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalNoteLabel">
+                    </h5>
+                    <button style="border: none;" type="button" id="closeModalNote" class="close" data-dismiss="modal"
+                        aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    $('#closeModalNote').on("click", () => {
+        $('#modalNote').modal('hide');
+    })
+    let notes = [];
+
+    var simplemde = new SimpleMDE({
+        element: document.getElementById("editorMd")
+    });
+
+    function callEditAddNoteModal() {
+        simplemde.value("");
+        $("#formAddCard").trigger("reset");
+        $('.cardGrid').hide('fast');
+        $('#addNewCard').hide('fast');
+        $('.formNewCard').show('fast');
+    }
+
+    function createFirstCard(e) {
+        e.preventDefault();
+        const noteTitle = $('#noteTitle').val();
+        const noteSubtitle = $('#noteSubtitle').val();
+        const modifyAt = moment();
+        notes.push({
+            id: notes.length + 1,
+            noteTitle: noteTitle,
+            noteSubtitle: noteSubtitle,
+            text: simplemde.value(),
+            modifyAt: modifyAt
+        });
+        $('.formNewCard').hide('fast');
+        renderCardGrid();
+    }
+
+    function renderCardGrid() {
+        $('.cardGrid').html(`
+            <div onclick="callEditAddNoteModal()" class="col-md-2 single-card border-blank blank-card d-flex justify-content-center">
+                <i class="bi bi-plus-circle add-new-card" style="top: 37%;position: relative;"></i>
+            </div>
+        `)
+        notes.forEach(note => {
+            $('.cardGrid').append(`
+            <div id="note${note.id}" onclick="showCard(${note.id})" class="col-md-2 single-card border-blank blank-card justify-content-center">
+                    <h1 style="overflow:hidden">${fitString(note.noteTitle)}</h1>
+                <h2 style="overflow:hidden">${fitString(note.noteSubtitle)}</h2>
+                <div style="position:relative;top:10vh">
+                    <div style="position:relative;float:left;">
+                        <i class="bi bi-calendar"></i> ${note.modifyAt.format('DD/MM/YYYY HH:mm')}
+                    </div>
+                    <div style="position:relative;float:right;">
+                        <a href="#" data-container="body" data-trigger="hover" id="popover${note.id}" data-toggle="popover"  data-content="Some content inside the popover">                        <i  class="bi bi-three-dots-vertical tooltip${note.id}"></i></a>
+                    </div>
+                </div>
+            </div>
+        `)
+
+            $(`#popover${note.id}`).popover({
+                trigger: "manual", html: true, animation: false,
+                content: function () {
+                    return `<i id="edit${note.id}" class="bi bi-pencil-fill">&nbspEditar</i><br><br>
+                    <i id="delete${note.id}" class="bi bi-trash">&nbspDeletar</i>`;
+                }
+            })
+                .on("mouseenter", function () {
+                    var _this = this;
+                    $(this).popover("show");
+                    $(`#edit${note.id}`).on("click", () => {
+                        editNote(note.id);
+                    })
+
+                    $(`#delete${note.id}`).on("click", () => {
+                        console.log("clicado");
+                        deleteNote(note.id);
+                    })
+
+                    $(".popover").on("mouseleave", function () {
+                        $(_this).popover('hide');
+                    });
+                }).on("mouseleave", function () {
+                    var _this = this;
+                    setTimeout(function () {
+                        if (!$(".popover:hover").length) {
+                            $(_this).popover("hide");
+                        }
+                    }, 300);
+                });
+        })
+        $('.cardGrid').show('fast');
+    }
+
+    function fitString(string) {
+        if (string.length > 8) {
+            return string.substring(0, 6) + "..."
+        }
+        return string;
+    }
+
+    function showCard(noteId) {
+        var converter = new showdown.Converter();
+        const myCard = notes.find(note => note.id == noteId);
+        $('#modalNoteLabel').html(myCard.noteTitle);
+        $('.modal-body').html(`
+            <h3>${myCard.noteTitle}</h3>
+            <h5>${myCard.noteSubtitle}</h5>
+            <hr>
+            <div id="markdown" style="width:100%;min-height:30vh;overflow-wrap:break-word" disabled>
+                ${converter.makeHtml(myCard.text)}
+            </div>
+        `);
+        $('.modal-footer').html(`
+            <div class="w-100">
+                <i class="bi bi-calendar"></i> ${myCard.modifyAt.format('DD/MM/YYYY HH:mm')}    
+            </div>
+        `);
+
+        $('#modalNote').modal('show');
+    }
+
+    function deleteNote(noteId) {
+        notes = notes.filter(note => note.id != noteId);
+        renderCardGrid();
+    }
+
+
+    function editNote(noteId) {
+        const note = notes.find(note => note.id == noteId);
+        $("#noteTitle").val(note.noteTitle);
+        $("#noteSubtitle").val(note.noteSubtitle);
+        simplemde.value(note.text);
+        $('.cardGrid').hide('fast');
+        $('.formNewCard').show('fast');
+        $('#btnAddTask').removeAttr('onclick');
+        $('#btnAddTask').off("click").on("click", () => {
+            editCardResetButton(noteId)
+        });
+    }
+
+    function editCardResetButton(noteId) {
+        notes = notes.map(note => {
+            if (note.id == noteId) {
+                note.noteTitle = $("#noteTitle").val();
+                note.noteSubtitle = $("#noteSubtitle").val();
+                note.text = simplemde.value();
+                note.modifyAt = moment();
+            }
+            return note;
+        });
+        $('#btnAddTask').removeAttr('onclick');
+        $('#btnAddTask').off("click").on("click", () => {
+            createFirstCard(event)
+        });
+        $('.formNewCard').hide('fast');
+        renderCardGrid();
+    }
+</script>
+
+</html>

@@ -1,0 +1,82 @@
+body {
+  font-family: "Inter" !important;
+  font-style: normal;
+  background-color: #fff3f6 !important;
+}
+
+.header {
+  font-family: "Inter";
+  font-size: 3em;
+  margin-top: 1em;
+}
+
+.blank-card {
+  background: #ffffff;
+}
+
+.align-spa-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+
+.border-blank {
+  border: 1px dashed #d0d5dd;
+  border-radius: 6px;
+  height: 100%;
+  width: 100%;
+}
+
+.add-new-card {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 36px;
+  line-height: 44px;
+}
+
+form {
+  height: 80%;
+  width: 80%;
+  font-family: "Inter";
+  font-style: normal;
+  font-size: 1.3em;
+  line-height: 35px;
+  position: relative;
+  margin-top: 3em;
+  margin-bottom: 3em;
+}
+
+.cardGrid {
+  height: 35vh;
+}
+
+.single-card {
+  margin: 1.5rem 1.5rem 1.5rem 1.5rem;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
